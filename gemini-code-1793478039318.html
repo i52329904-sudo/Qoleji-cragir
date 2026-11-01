@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ԱՊՔ - Քոլեջի Հեռախոսային Հավելված</title>
+
+    <!-- PWA & Mobile Web App Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ԱՊՔ">
+    <meta name="theme-color" content="#4f46e5">
+
+    <!-- Custom Logo for Mobile Home Screen & Favicon -->
+    <link rel="apple-touch-icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTwxUfWrT3B6pprMOb2TSJASB9IL-ws5UOSYbHGYMvj-7v0SydXIV0zqOo&s=10">
+    <link rel="icon" type="image/png" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTwxUfWrT3B6pprMOb2TSJASB9IL-ws5UOSYbHGYMvj-7v0SydXIV0zqOo&s=10">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font Inter / Noto Sans Armenian -->
+    <link href="https://fonts.googleapis.com/css2?family=Armata&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar hide for mobile navigation */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        /* Mobile phone mockup wrapper */
+        .phone-frame {
+            max-width: 420px;
+            height: 880px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 12px #1f2937;
+            border-radius: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Screen transition effect */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.25s ease-in-out;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Hide screen completely when unselected */
+        .tab-content.hidden-screen {
+            display: none !important;
+        }
+
+        /* Flashing / Pulsing Badge Animation for Unsubmitted Assignments */
+        @keyframes pulse-attention {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.1); }
+        }
+        .animate-pulse-badge {
+            animation: pulse-attention 1.5s infinite;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 flex items-center justify-center min-h-screen p-2 sm:p-4 select-none">
+
+    <!-- MOBILE PHONE CONTAINER FRAME -->
+    <div class="phone-frame w-full bg-slate-50 flex flex-col relative">
+
+        <!-- APP HEADER (Hidden on Login) -->
+        <header id="appHeader" class="bg-gradient-to-r from-brand-700 to-brand-600 text-white px-5 py-4 shadow-md z-10 hidden transition-all">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <img id="headerAvatar" src="" alt="Avatar" class="w-10 h-10 rounded-full border-2 border-white/40 object-cover hidden">
+                    <div id="headerDefaultAvatar" class="w-10 h-10 rounded-full border-2 border-white/40 bg-white/20 flex items-center justify-center text-white font-bold text-sm">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div>
+                        <h2 id="headerUserName" class="font-bold text-sm leading-tight">Աննա Սարգսյան</h2>
+                        <div class="flex items-center space-x-1.5 mt-0.5">
+                            <span id="headerRoleBadge" class="inline-block bg-white/20 text-white text-[10px] px-2 py-0.5 rounded-full font-medium tracking-wide">Ուսանող</span>
+                            <span id="headerCourseBadge" class="inline-block bg-amber-400/30 text-amber-100 border border-amber-300/30 text-[10px] px-2 py-0.5 rounded-full font-semibold"></span>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="logout()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition" title="Դուրս գալ">
+                    <i class="fas fa-sign-out-alt text-sm"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- MAIN SCROLLABLE CONTENT AREA -->
+        <main id="mainContainer" class="flex-1 overflow-y-auto p-4 no-scrollbar pb-24">
+
+            <!-- 1. LOGIN SCREEN -->
+            <section id="screenLogin" class="tab-content active h-full flex flex-col justify-center px-2 py-4">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-white text-white rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-brand-500/20 overflow-hidden border border-slate-100">
+                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTwxUfWrT3B6pprMOb2TSJASB9IL-ws5UOSYbHGYMvj-7v0SydXIV0zqOo&s=10" alt="ԱՊՔ Լոգո" class="w-full h-full object-cover">
+                    </div>
+                    <h1 class="text-2xl font-bold text-slate-900">ԱՊՔ</h1>
+                    <p class="text-slate-500 text-xs mt-1">Ուսանողական հարթակ</p>
+                </div>
+
+                <!-- Role Selector -->
+                <div class="mb-4 bg-slate-200 p-1 rounded-xl flex text-xs font-semibold">
+                    <button type="button" onclick="selectDemoRole('student')" id="btnRoleStudent" class="flex-1 py-2 rounded-lg text-center transition bg-white text-brand-700 shadow-sm font-semibold">
+                        Ուսանող
+                    </button>
+                    <button type="button" onclick="selectDemoRole('lecturer')" id="btnRoleLecturer" class="flex-1 py-2 rounded-lg text-center transition text-slate-600 hover:text-slate-900">
+                        Դասախոս
+                    </button>
+                    <button type="button" onclick="selectDemoRole('admin')" id="btnRoleAdmin" class="flex-1 py-2 rounded-lg text-center transition text-slate-600 hover:text-slate-900">
+                        Ադմին
+                    </button>
+                </div>
+
+                <!-- Login Form -->
+                <form onsubmit="handleLogin(event)" class="space-y-3 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Մուտքանուն</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                                <i class="fas fa-user text-xs"></i>
+                            </span>
+                            <input type="text" id="loginUsername" value="student1" required class="w-full pl-9 pr-3 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500 bg-slate-50/50">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Գաղտնաբառ</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                                <i class="fas fa-lock text-xs"></i>
+                            </span>
+                            <input type="password" id="loginPassword" value="123456" required class="w-full pl-9 pr-3 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500 bg-slate-50/50">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-xl shadow-md shadow-brand-600/20 transition active:scale-[0.98]">
+                        Մուտք Գործել
+                    </button>
+                </form>
+
+                <!-- Demo Credentials Helper Box -->
+                <div class="mt-6 p-3 bg-indigo-50 border border-indigo-100 rounded-xl text-indigo-900 text-[11px]">
+                    <div class="font-bold mb-1 flex items-center">
+                        <i class="fas fa-info-circle mr-1.5 text-brand-600"></i> Փորձնական տվյալներ՝
+                    </div>
+                    <ul class="space-y-1 text-slate-600">
+                        <li><b>Ուսանող:</b> student1 / 123456</li>
+                        <li><b>Դասախոս:</b> teacher1 / 123456</li>
+                        <li><b>Ադմին:</b> admin / 123456</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- 2. ANNOUNCEMENTS SCREEN -->
+            <section id="screenAnnouncements" class="tab-content space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-xl font-bold text-slate-900">Հայտարարություններ</h1>
+                        <p class="text-xs text-slate-500">Վերջին նորություններն ու ծանուցումները</p>
+                    </div>
+                    <button id="btnNewAnnouncement" onclick="openModal('modalAnnouncement')" class="hidden bg-brand-600 text-white text-xs font-medium px-3 py-1.5 rounded-xl flex items-center space-x-1 shadow hover:bg-brand-700">
+                        <i class="fas fa-plus"></i>
+                        <span>Ավելացնել</span>
+                    </button>
+                </div>
+
+                <div class="flex space-x-2 overflow-x-auto no-scrollbar py-1">
+                    <button onclick="filterAnnouncements('all', event)" class="ann-filter-btn px-3 py-1 rounded-lg text-xs font-medium bg-brand-600 text-white whitespace-nowrap">Բոլորը</button>
+                    <button onclick="filterAnnouncements('urgent', event)" class="ann-filter-btn px-3 py-1 rounded-lg text-xs font-medium bg-white border border-slate-200 text-slate-600 whitespace-nowrap">Կարևոր</button>
+                    <button onclick="filterAnnouncements('event', event)" class="ann-filter-btn px-3 py-1 rounded-lg text-xs font-medium bg-white border border-slate-200 text-slate-600 whitespace-nowrap">Միջոցառումներ</button>
+                </div>
+
+                <div id="announcementsList" class="space-y-3">
+                    <!-- Dynamic Announcements -->
+                </div>
+            </section>
+
+            <!-- 3. TIMETABLE SCREEN -->
+            <section id="screenSchedule" class="tab-content space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-xl font-bold text-slate-900">Դասացուցակ</h1>
+                        <p class="text-xs text-slate-500">Շաբաթվա դասաժամերը</p>
+                    </div>
+                </div>
+
+                <div class="flex space-x-2 overflow-x-auto no-scrollbar py-1">
+                    <button onclick="loadSchedule('Mon', event)" class="day-btn px-3.5 py-1.5 rounded-xl text-xs font-medium bg-brand-600 text-white whitespace-nowrap shadow-sm">Երկ</button>
+                    <button onclick="loadSchedule('Tue', event)" class="day-btn px-3.5 py-1.5 rounded-xl text-xs font-medium bg-white border border-slate-200 text-slate-600 whitespace-nowrap">Երք</button>
+                    <button onclick="loadSchedule('Wed', event)" class="day-btn px-3.5 py-1.5 rounded-xl text-xs font-medium bg-white border border-slate-200 text-slate-600 whitespace-nowrap">Չրք</button>
+                    <button onclick="loadSchedule('Thu', event)" class="day-btn px-3.5 py-1.5 rounded-xl text-xs font-medium bg-white border border-slate-200 text-slate-600 whitespace-nowrap">Հնգ</button>
+                    <button onclick="loadSchedule('Fri', event)" class="day-btn px-3.5 py-1.5 rounded-xl text-xs font-medium bg-white border border-slate-200 text-slate-600 whitespace-nowrap">Ուրբ</button>
+                </div>
+
+                <div id="scheduleList" class="space-y-3">
+                    <!-- Dynamic Schedule -->
+                </div>
+            </section>
+
+            <!-- 4. COURSE MATERIALS & TOPICS SCREEN -->
+            <section id="screenCourses" class="tab-content space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-xl font-bold text-slate-900">Դասընթացներ և Նյութեր</h1>
+                        <p class="text-xs text-slate-500">Դասերի թեմաներ, սլայդեր և դասախոսություններ</p>
+                    </div>
+                    <button id="btnAddTopic" onclick="openModal('modalTopic')" class="hidden bg-brand-600 text-white text-xs font-medium px-3 py-1.5 rounded-xl flex items-center space-x-1 shadow hover:bg-brand-700">
+                        <i class="fas fa-plus"></i>
+                        <span>Նոր Նյութ</span>
+                    </button>
+                </div>
+
+                <div id="topicsList" class="space-y-3">
+                    <!-- Dynamic Topics -->
+                </div>
+            </section>
+
+            <!-- 5. ASSIGNMENTS SCREEN -->
+            <section id="screenAssignments" class="tab-content space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-xl font-bold text-slate-900">Առաջադրանքներ</h1>
+                        <p class="text-xs text-slate-500">Տնային աշխատանքներ և նախագծեր</p>
+                    </div>
+                    <button id="btnAddAssignment" onclick="openModal('modalAssignment')" class="hidden bg-brand-600 text-white text-xs font-medium px-3 py-1.5 rounded-xl flex items-center space-x-1 shadow hover:bg-brand-700">
+                        <i class="fas fa-plus"></i>
+                        <span>Ստեղծել</span>
+                    </button>
+                </div>
+
+                <div id="assignmentsList" class="space-y-3">
+                    <!-- Dynamic Assignments -->
+                </div>
+            </section>
+
+            <!-- 6. PROFILE & ADMIN SCREEN -->
+            <section id="screenProfile" class="tab-content space-y-4">
+                <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm text-center space-y-3">
+                    <div class="relative w-20 h-20 mx-auto">
+                        <img id="profileAvatar" src="" alt="Profile Avatar" class="w-20 h-20 rounded-2xl object-cover shadow-md mx-auto hidden">
+                        <div id="profileDefaultAvatar" class="w-20 h-20 rounded-2xl bg-brand-600 text-white flex items-center justify-center text-2xl font-bold mx-auto shadow-md">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h2 id="profileName" class="font-bold text-slate-900 text-base">Աննա Սարգսյան</h2>
+                        <p id="profileSub" class="text-slate-500 text-xs mt-0.5">Կուրս 1 (Շուկայաբանություն)</p>
+                        <div class="flex items-center justify-center space-x-1.5 mt-2">
+                            <span id="profileRoleBadge" class="bg-brand-50 text-brand-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full">Ուսանող</span>
+                            <span id="profileCourseBadge" class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Password Change Section (Collapsible) -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-3">
+                    <button type="button" onclick="togglePasswordSection()" class="w-full flex items-center justify-between text-left focus:outline-none">
+                        <h3 class="font-bold text-slate-800 text-xs flex items-center">
+                            <i class="fas fa-key text-brand-600 mr-2"></i>Փոխել Գաղտնաբառը
+                        </h3>
+                        <i id="passwordToggleIcon" class="fas fa-chevron-down text-xs text-slate-400 transition-transform"></i>
+                    </button>
+                    
+                    <div id="passwordContainer" class="hidden pt-2 border-t border-slate-100 space-y-2.5 text-xs">
+                        <form onsubmit="changePassword(event)" class="space-y-2.5">
+                            <div>
+                                <label class="block font-medium text-slate-600 mb-1">Ընթացիկ Գաղտնաբառ</label>
+                                <input type="password" id="currentPassword" required placeholder="Մուտքագրեք ներկայիս գաղտնաբառը" class="w-full p-2 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500 bg-slate-50/50">
+                            </div>
+                            <div>
+                                <label class="block font-medium text-slate-600 mb-1">Նոր Գաղտնաբառ</label>
+                                <input type="password" id="newPassword" required placeholder="Մուտքագրեք նոր գաղտնաբառը" class="w-full p-2 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500 bg-slate-50/50">
+                            </div>
+                            <div>
+                                <label class="block font-medium text-slate-600 mb-1">Հաստատել Նոր Գաղտնաբառը</label>
+                                <input type="password" id="confirmNewPassword" required placeholder="Կրկնեք նոր գաղտնաբառը" class="w-full p-2 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500 bg-slate-50/50">
+                            </div>
+                            <button type="submit" class="w-full py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-md transition active:scale-[0.98]">
+                                Պահպանել Գաղտնաբառը
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Personal To-Do Planner -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-bold text-slate-800 text-xs">Անձնական Օրակարգ & Գործեր</h3>
+                        <span id="todoCount" class="text-[10px] font-bold bg-slate-100 px-2 py-0.5 rounded-full text-slate-600">0/0</span>
+                    </div>
+
+                    <form onsubmit="addTodoTask(event)" class="flex space-x-2">
+                        <input type="text" id="todoInput" placeholder="Ավելացնել նոր գործ..." required class="flex-1 p-2 border border-slate-200 text-xs rounded-xl focus:outline-none focus:border-brand-500">
+                        <button type="submit" class="bg-brand-600 text-white px-3 py-2 text-xs font-bold rounded-xl hover:bg-brand-700 transition">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </form>
+
+                    <div id="todoList" class="space-y-1.5">
+                        <!-- Dynamic Todos -->
+                    </div>
+                </div>
+
+                <!-- Admin Control Panel Section -->
+                <div id="adminPanelSection" class="bg-slate-900 text-white p-4 rounded-2xl shadow-md space-y-3 hidden">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                        <span class="font-bold text-xs text-amber-400 flex items-center">
+                            <i class="fas fa-user-shield mr-1.5"></i> Ադմինիստրացիոն Պանել
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <button onclick="openModal('modalManageCourses')" class="bg-slate-800 hover:bg-slate-700 p-2.5 rounded-xl text-left border border-slate-700">
+                            <i class="fas fa-graduation-cap text-brand-400 mb-1 block"></i>
+                            <span class="font-semibold block text-[11px]">Կուրսեր</span>
+                        </button>
+                        <button onclick="openModal('modalManageUsers')" class="bg-slate-800 hover:bg-slate-700 p-2.5 rounded-xl text-left border border-slate-700">
+                            <i class="fas fa-users text-emerald-400 mb-1 block"></i>
+                            <span class="font-semibold block text-[11px]">Ուսանողներ</span>
+                        </button>
+                        <button onclick="openModal('modalAdminSchedule')" class="bg-slate-800 hover:bg-slate-700 p-2.5 rounded-xl text-left border border-slate-700 col-span-2">
+                            <i class="fas fa-calendar-alt text-amber-400 mb-1 block"></i>
+                            <span class="font-semibold block text-[11px]">Կառավարել Դասացուցակը</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- BOTTOM NAVIGATION BAR (Hidden on Login) -->
+        <nav id="bottomNav" class="bg-white border-t border-slate-100 px-3 py-2 flex justify-around items-center absolute bottom-0 inset-x-0 z-20 shadow-lg hidden">
+            <button id="navAnnouncements" onclick="switchTab('screenAnnouncements')" class="nav-btn flex flex-col items-center text-brand-600 transition">
+                <i class="fas fa-bullhorn text-lg"></i>
+                <span class="text-[10px] font-medium mt-1">Նորություններ</span>
+            </button>
+            <button id="navSchedule" onclick="switchTab('screenSchedule')" class="nav-btn flex flex-col items-center text-slate-400 hover:text-slate-600 transition">
+                <i class="fas fa-calendar-alt text-lg"></i>
+                <span class="text-[10px] font-medium mt-1">Դասացուցակ</span>
+            </button>
+            <button id="navCourses" onclick="switchTab('screenCourses')" class="nav-btn flex flex-col items-center text-slate-400 hover:text-slate-600 transition">
+                <i class="fas fa-book-open text-lg"></i>
+                <span class="text-[10px] font-medium mt-1">Նյութեր</span>
+            </button>
+            <button id="navAssignments" onclick="switchTab('screenAssignments')" class="nav-btn flex flex-col items-center text-slate-400 hover:text-slate-600 transition relative">
+                <div class="relative">
+                    <i class="fas fa-tasks text-lg"></i>
+                    <span id="assignmentBadge" class="hidden absolute -top-1 -right-2 bg-rose-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center animate-pulse-badge">!</span>
+                </div>
+                <span class="text-[10px] font-medium mt-1">Առաջադրանքներ</span>
+            </button>
+            <button id="navProfile" onclick="switchTab('screenProfile')" class="nav-btn flex flex-col items-center text-slate-400 hover:text-slate-600 transition">
+                <i class="fas fa-user-circle text-lg"></i>
+                <span class="text-[10px] font-medium mt-1">Պրոֆիլ</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- MODALS -->
+
+    <!-- MODAL: ADD ANNOUNCEMENT -->
+    <div id="modalAnnouncement" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl relative animate-fadeIn space-y-3">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-slate-900 text-base">Ավելացնել Հայտարարություն</h3>
+                <button onclick="closeModal('modalAnnouncement')" class="text-slate-400 hover:text-slate-600">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+            <form onsubmit="saveAnnouncement(event)" class="space-y-2.5 text-xs">
+                <div>
+                    <label class="block font-medium text-slate-600 mb-1">Վերնագիր</label>
+                    <input type="text" id="annTitle" required placeholder="Մուտքագրեք վերնագիրը" class="w-full p-2 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500">
+                </div>
+                <div>
+                    <label class="block font-medium text-slate-600 mb-1">Բովանդակություն</label>
+                    <textarea id="annContent" required rows="3" placeholder="Մանրամասն տեքստ..." class="w-full p-2 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500"></textarea>
+                </div>
+                <div>
+                    <label class="block font-medium text-slate-600 mb-1">Կատեգորիա</label>
+                    <select id="annCategory" class="w-full p-2 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500 bg-white">
+                        <option value="all">Ընդհանուր</option>
+                        <option value="urgent">Կարևոր</option>
+                        <option value="event">Միջոցառում</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full py-2.5 bg-brand-600 text-white font-bold rounded-xl shadow hover:bg-brand-700 transition mt-2">
+                    Հրապարակել
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD ASSIGNMENT -->
+    <div id="modalAssignment" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl relative animate-fadeIn space-y-3">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-slate-900 text-base">Ավելացնել Առաջադրանք</h3>
+                <button onclick="closeModal('modalAssignment')" class="text-slate-400 hover:text-slate-600">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+            <form onsubmit="saveAssignment(event)" class="space-y-2.5 text-xs">
+                <div>
+                    <label class="block font-medium text-slate-600 mb-1">Առարկա</label>
+                    <input type="text" id="assignSubject" required placeholder="Օր․՝ Մարքեթինգի Հիմունքներ" class="w-full p-2 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500">
+                </div>
+                <div>
+                    <label class="block font-medium text-slate-600 mb-1">Առաջադրանքի Անվանում</label>
+                    <input type="text" id="assignTitle" required placeholder="Օր․՝ 4P Վերլուծություն" class="w-full p-2 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500">
+                </div>
+                <div>
+                    <label class="block font-medium text-slate-600 mb-1">Վերջնաժամկետ (Ամսաթիվ)</label>
+                    <input type="date" id="assignDeadline" required class="w-full p-2 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500 bg-white">
+                </div>
+                <button type="submit" class="w-full py-2.5 bg-brand-600 text-white font-bold rounded-xl shadow hover:bg-brand-700 transition mt-2">
+                    Հաստատել Առաջադրանքը
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD TOPIC -->
+    <div id="modalTopic" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl relative animate-fadeIn space-y-3">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-slate-900 text-base">Ավելացնել Դասի Նյութ</h3>
+                <button onclick="closeModal('modalTopic')" class="text-slate-400 hover:text-slate-600">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+            <form onsubmit="saveTopic(event)" class="space-y-2.5 text-xs">
+                <div>
+                    <label class="block font-medium text-slate-600 mb-1">Առարկա</label>
+                    <input type="text" id="topicSubject" required placeholder="Օր․՝ Մարքեթինգի Հիմունքներ" class="w-full p-2 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500">
+                </div>
+                <div>
+                    <label class="block font-medium text-slate-600 mb-1">Թեմայի Վերնագիր</label>
+                    <input type="text" id="topicTitle" required placeholder="Օր․՝ Թեմա 2․ SMM Ռազմավարություն" class="w-full p-2 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500">
+                </div>
+                <div>
+                    <label class="block font-medium text-slate-600 mb-1">Նկարագրություն</label>
+                    <textarea id="topicDesc" required rows="2" placeholder="Համառոտ նկարագրություն..." class="w-full p-2 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500"></textarea>
+                </div>
+                <div>
+                    <label class="block font-medium text-slate-600 mb-1">Ֆայլի անվանում</label>
+                    <input type="text" id="topicFile" required placeholder="Օր․՝ Lecture_SMM.pdf" class="w-full p-2 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500">
+                </div>
+                <button type="submit" class="w-full py-2.5 bg-brand-600 text-white font-bold rounded-xl shadow hover:bg-brand-700 transition mt-2">
+                    Ավելացնել Նյութը
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: MANAGE COURSES -->
+    <div id="modalManageCourses" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl relative animate-fadeIn space-y-3">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-slate-900 text-base">Կուրսերի Կառավարում</h3>
+                <button onclick="closeModal('modalManageCourses')" class="text-slate-400 hover:text-slate-600">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+            <form onsubmit="addNewCourse(event)" class="flex space-x-2 text-xs">
+                <input type="text" id="newCourseName" placeholder="Նոր կուրսի անուն..." required class="flex-1 p-2 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500">
+                <button type="submit" class="bg-brand-600 text-white font-bold px-3 py-2 rounded-xl">Ավելացնել</button>
+            </form>
+            <div id="adminCoursesList" class="divide-y divide-slate-100 max-h-48 overflow-y-auto text-xs">
+                <!-- Courses List -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: MANAGE USERS -->
+    <div id="modalManageUsers" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl relative animate-fadeIn space-y-3">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-slate-900 text-base">Ուսանողների Կառավարում</h3>
+                <button onclick="closeModal('modalManageUsers')" class="text-slate-400 hover:text-slate-600">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+            
+            <form onsubmit="addNewStudent(event)" class="space-y-2 text-xs border-b border-slate-100 pb-3">
+                <div class="font-bold text-slate-800 text-[11px]">Ավելացնել Նոր Ուսանող</div>
+                <input type="text" id="newStudentName" placeholder="Անուն Ազգանուն" required class="w-full p-2 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500">
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="text" id="newStudentUser" placeholder="Մուտքանուն" required class="p-2 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500">
+                    <input type="password" id="newStudentPass" placeholder="Գաղտնաբառ" required class="p-2 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500">
+                </div>
+                <div>
+                    <label class="block text-[10px] text-slate-500 mb-1">Ընտրել Կուրսը</label>
+                    <select id="newStudentCourse" class="w-full p-2 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500 bg-white">
+                        <!-- Dynamic Course Options -->
+                    </select>
+                </div>
+                <button type="submit" class="w-full py-2 bg-emerald-600 text-white font-bold rounded-xl shadow hover:bg-emerald-700 transition">
+                    Գրանցել Ուսանողին
+                </button>
+            </form>
+
+            <div id="adminUsersList" class="max-h-40 overflow-y-auto text-xs space-y-2">
+                <!-- Students List -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ADMIN SCHEDULE EDIT -->
+    <div id="modalAdminSchedule" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl relative animate-fadeIn space-y-3">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-slate-900 text-base">Ավելացնել Դաս Դասացուցակում</h3>
+                <button onclick="closeModal('modalAdminSchedule')" class="text-slate-400 hover:text-slate-600">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+            <form onsubmit="saveScheduleItem(event)" class="space-y-2.5 text-xs">
+                <div>
+                    <label class="block font-medium text-slate-600 mb-1">Ընտրել Կուրսը</label>
+                    <select id="schedCourseSelect" class="w-full p-2 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500 bg-white">
+                        <!-- Dynamic Options -->
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-medium text-slate-600 mb-1">Շաբաթվա Օրը</label>
+                    <select id="schedDaySelect" class="w-full p-2 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500 bg-white">
+                        <option value="Mon">Երկուշաբթի</option>
+                        <option value="Tue">Երեքշաբթի</option>
+                        <option value="Wed">Չորեքշաբթի</option>
+                        <option value="Thu">Հինգշաբթի</option>
+                        <option value="Fri">Ուրբաթ</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-medium text-slate-600 mb-1">Առարկա</label>
+                    <input type="text" id="schedSubject" required placeholder="Օր․՝ Մարքեթինգի Հիմունքներ" class="w-full p-2 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-medium text-slate-600 mb-1">Ժամ</label>
+                        <input type="text" id="schedTime" required placeholder="09:00 - 10:20" class="w-full p-2 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-slate-600 mb-1">Լսարան</label>
+                        <input type="text" id="schedRoom" required placeholder="Լսարան 101" class="w-full p-2 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-medium text-slate-600 mb-1">Դասախոս</label>
+                    <input type="text" id="schedTeacher" required placeholder="Դավիթ Հարությունյան" class="w-full p-2 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500">
+                </div>
+                <button type="submit" class="w-full py-2.5 bg-brand-600 text-white font-bold rounded-xl shadow hover:bg-brand-700 transition mt-2">
+                    Պահպանել Դասը
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- USERS & STATE DATA ---
+        let currentUser = null;
+
+        // System Courses Data
+        let coursesData = ['Կուրս 1 (Շուկայաբանություն)'];
+
+        // Users Registry
+        const USERS = {
+            'student1': {
+                username: 'student1',
+                password: '123456',
+                role: 'student',
+                roleLabel: 'Ուսանող',
+                name: 'Աննա Սարգսյան',
+                course: 'Կուրս 1 (Շուկայաբանություն)',
+                subtitle: 'Կուրս 1 (Շուկայաբանություն)',
+                avatar: ''
+            },
+            'teacher1': {
+                username: 'teacher1',
+                password: '123456',
+                role: 'lecturer',
+                roleLabel: 'Դասախոս',
+                name: 'Դավիթ Հարությունյան',
+                subtitle: 'Շուկայաբանության Դասախոս',
+                avatar: ''
+            },
+            'admin': {
+                username: 'admin',
+                password: '123456',
+                role: 'admin',
+                roleLabel: 'Ադմինիստրատոր',
+                name: 'Ադմինիստրացիա',
+                subtitle: 'Համակարգող',
+                avatar: ''
+            }
+        };
+
+        // Course Schedules per Course
+        let courseSchedules = {
+            'Կուրս 1 (Շուկայաբանություն)': {
+                'Mon': [
+                    { time: '09:00 - 10:20', subject: 'Մարքեթինգի Հիմունքներ', room: 'Լսարան 101', teacher: 'Դավիթ Հարությունյան', type: 'Դասախոսություն' },
+                    { time: '10:30 - 11:50', subject: 'Թվային Մարքեթինգ (SMM)', room: 'Լսարան 104', teacher: 'Դավիթ Հարությունյան', type: 'Գործնական' }
+                ],
+                'Tue': [
+                    { time: '09:00 - 10:20', subject: 'Բրենդինգ և Ռազմավարություն', room: 'Լսարան 202', teacher: 'Դավիթ Հարությունյան', type: 'Դասախոսություն' }
+                ],
+                'Wed': [
+                    { time: '11:00 - 12:20', subject: 'Մարքեթինգի Հիմունքներ', room: 'Լսարան 101', teacher: 'Դավիթ Հարությունյան', type: 'Սեմինար' }
+                ],
+                'Thu': [
+                    { time: '09:00 - 10:20', subject: 'Սպառողների Վարքագիծ', room: 'Լսարան 305', teacher: 'Դավիթ Հարությունյան', type: 'Դասախոսություն' }
+                ],
+                'Fri': [
+                    { time: '10:30 - 11:50', subject: 'Թվային Մարքեթինգ (SMM)', room: 'Լսարան 104', teacher: 'Դավիթ Հարությունյան', type: 'Լաբորատոր' }
+                ]
+            }
+        };
+
+        // Dynamic Announcements Data
+        let announcementsData = [
+            {
+                id: 1,
+                title: 'Բարի գալուստ ԱՊՔ Հարթակ',
+                content: 'Ուսումնական տարվա առաջին կիսամյակի դասացուցակը և ուսումնական նյութերը հասանելի են համակարգում։',
+                category: 'all',
+                categoryLabel: 'Ընդհանուր',
+                date: 'Հոկտեմբեր 28, 2026',
+                author: 'Ադմինիստրացիա'
+            },
+            {
+                id: 2,
+                title: 'Վարպետաց դաս․ «Digital Marketing & SMM 2026»',
+                content: 'Նոյեմբերի 12-ին ժամը 14:00-ին 101 լսարանում տեղի կունենա հանդիպում ոլորտի առաջատար մասնագետների հետ։ Մասնակցությունն ազատ է։',
+                category: 'event',
+                categoryLabel: 'Միջոցառում',
+                date: 'Հոկտեմբեր 29, 2026',
+                author: 'Դավիթ Հարությունյան'
+            },
+            {
+                id: 3,
+                title: 'Մարկետինգային Նախագծերի Pitch Competition',
+                content: 'Հայտարարվում է ուսանողական ստարտափների և մարկետինգային ռազմավարությունների մրցույթ։ Հայտերի ընդունման վերջնաժամկետն է նոյեմբերի 20-ը։',
+                category: 'urgent',
+                categoryLabel: 'Կարևոր',
+                date: 'Հոկտեմբեր 29, 2026',
+                author: 'Ուսանողական Խորհուրդ'
+            }
+        ];
+
+        // Course Topics & Materials Data
+        let courseTopicsData = [
+            {
+                id: 1,
+                subject: 'Մարքեթինգի Հիմունքներ',
+                title: 'Թեմա 1․ Մարքեթինգի ներածություն և 4P մոդելը',
+                description: 'Product, Price, Place, Promotion հասկացությունները և դրանց կիրառումը բիզնեսում։',
+                fileLabel: 'Marketing_Mix_Lecture1.pdf',
+                type: 'pdf',
+                teacher: 'Դավիթ Հարությունյան',
+                completed: false
+            }
+        ];
+
+        // Dynamic Assignments Data
+        let assignmentsData = [
+            {
+                id: 1,
+                subject: 'Մարքեթինգի Հիմունքներ',
+                title: 'Վերլուծական աշխատանք․ Ուսումնասիրել տեղական բրենդի 4P ռազմավարությունը',
+                deadline: '2026-11-05',
+                submitted: false
+            }
+        ];
+
+        // Personal Todo Tasks Data
+        let userTodos = [
+            { id: 1, text: 'Պատրաստել Մարքեթինգի 4P վերլուծությունը', done: false }
+        ];
+
+        // Toggle Password Section Functionality
+        function togglePasswordSection() {
+            const container = document.getElementById('passwordContainer');
+            const icon = document.getElementById('passwordToggleIcon');
+            if (container.classList.contains('hidden')) {
+                container.classList.remove('hidden');
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                container.classList.add('hidden');
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        // Change Password Functionality
+        function changePassword(e) {
+            e.preventDefault();
+            const currPass = document.getElementById('currentPassword').value.trim();
+            const newPass = document.getElementById('newPassword').value.trim();
+            const confirmPass = document.getElementById('confirmNewPassword').value.trim();
+
+            if (!currentUser) return;
+
+            if (currPass !== currentUser.password) {
+                alert('Ընթացիկ գաղտնաբառը սխալ է։');
+                return;
+            }
+
+            if (newPass !== confirmPass) {
+                alert('Նոր գաղտնաբառերը չեն համապատասխանում։');
+                return;
+            }
+
+            if (newPass.length < 6) {
+                alert('Գաղտնաբառը պետք է լինի առնվազն 6 նիշ։');
+                return;
+            }
+
+            currentUser.password = newPass;
+            if (USERS[currentUser.username]) {
+                USERS[currentUser.username].password = newPass;
+            }
+
+            alert('Գաղտնաբառը հաջողությամբ փոխվել է։');
+            e.target.reset();
+            togglePasswordSection();
+        }
+
+        // Selection Role Helper in Login
+        function selectDemoRole(roleKey) {
+            const btnStudent = document.getElementById('btnRoleStudent');
+            const btnLecturer = document.getElementById('btnRoleLecturer');
+            const btnAdmin = document.getElementById('btnRoleAdmin');
+
+            btnStudent.className = 'flex-1 py-2 rounded-lg text-center transition text-slate-600 hover:text-slate-900';
+            btnLecturer.className = 'flex-1 py-2 rounded-lg text-center transition text-slate-600 hover:text-slate-900';
+            btnAdmin.className = 'flex-1 py-2 rounded-lg text-center transition text-slate-600 hover:text-slate-900';
+
+            const activeClass = 'flex-1 py-2 rounded-lg text-center transition bg-white text-brand-700 shadow-sm font-semibold';
+
+            if(roleKey === 'student') {
+                btnStudent.className = activeClass;
+                document.getElementById('loginUsername').value = 'student1';
+            } else if(roleKey === 'lecturer') {
+                btnLecturer.className = activeClass;
+                document.getElementById('loginUsername').value = 'teacher1';
+            } else if(roleKey === 'admin') {
+                btnAdmin.className = activeClass;
+                document.getElementById('loginUsername').value = 'admin';
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            const user = USERS[username];
+
+            if(user && user.password === password) {
+                currentUser = user;
+                
+                // Hide Login screen completely
+                const loginScreen = document.getElementById('screenLogin');
+                loginScreen.classList.remove('active');
+                loginScreen.classList.add('hidden-screen');
+
+                // Set Header Info
+                document.getElementById('headerUserName').innerText = user.name;
+                document.getElementById('headerRoleBadge').innerText = user.roleLabel;
+                
+                // Set Course Badges
+                const headerCourseBadge = document.getElementById('headerCourseBadge');
+                const profileCourseBadge = document.getElementById('profileCourseBadge');
+                if(user.course) {
+                    if(headerCourseBadge) {
+                        headerCourseBadge.innerText = user.course;
+                        headerCourseBadge.style.display = 'inline-block';
+                    }
+                    if(profileCourseBadge) {
+                        profileCourseBadge.innerText = user.course;
+                        profileCourseBadge.style.display = 'inline-block';
+                    }
+                } else {
+                    if(headerCourseBadge) headerCourseBadge.style.display = 'none';
+                    if(profileCourseBadge) profileCourseBadge.style.display = 'none';
+                }
+                
+                // Handle Avatar vs Default Icons
+                const headerAvatar = document.getElementById('headerAvatar');
+                const headerDefaultAvatar = document.getElementById('headerDefaultAvatar');
+                const profileAvatar = document.getElementById('profileAvatar');
+                const profileDefaultAvatar = document.getElementById('profileDefaultAvatar');
+
+                if(user.avatar) {
+                    headerAvatar.src = user.avatar;
+                    profileAvatar.src = user.avatar;
+                    headerAvatar.classList.remove('hidden');
+                    profileAvatar.classList.remove('hidden');
+                    if(headerDefaultAvatar) headerDefaultAvatar.classList.add('hidden');
+                    if(profileDefaultAvatar) profileDefaultAvatar.classList.add('hidden');
+                } else {
+                    headerAvatar.classList.add('hidden');
+                    profileAvatar.classList.add('hidden');
+                    if(headerDefaultAvatar) headerDefaultAvatar.classList.remove('hidden');
+                    if(profileDefaultAvatar) profileDefaultAvatar.classList.remove('hidden');
+                }
+
+                // Set Profile Info
+                document.getElementById('profileName').innerText = user.name;
+                document.getElementById('profileSub').innerText = user.subtitle;
+                document.getElementById('profileRoleBadge').innerText = user.roleLabel;
+
+                // Show Admin Control Panel Section if Admin
+                const adminSection = document.getElementById('adminPanelSection');
+                if(adminSection) {
+                    if(user.role === 'admin') {
+                        adminSection.classList.remove('hidden');
+                    } else {
+                        adminSection.classList.add('hidden');
+                    }
+                }
+
+                // Show Action Buttons based on Role
+                document.getElementById('btnNewAnnouncement').style.display = (user.role === 'admin') ? 'flex' : 'none';
+                document.getElementById('btnAddAssignment').style.display = (user.role === 'lecturer' || user.role === 'admin') ? 'flex' : 'none';
+                document.getElementById('btnAddTopic').style.display = (user.role === 'lecturer' || user.role === 'admin') ? 'flex' : 'none';
+
+                // UI Visibility Toggle
+                document.getElementById('appHeader').classList.remove('hidden');
+                document.getElementById('bottomNav').classList.remove('hidden');
+
+                // Switch to Main Feed
+                switchTab('screenAnnouncements');
+            } else {
+                alert('Անվավեր մուտքանուն կամ գաղտնաբառ։');
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('appHeader').classList.add('hidden');
+            document.getElementById('bottomNav').classList.add('hidden');
+            
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(t => {
+                t.classList.remove('active');
+                t.classList.add('hidden-screen');
+            });
+            
+            const loginScreen = document.getElementById('screenLogin');
+            loginScreen.classList.remove('hidden-screen');
+            loginScreen.classList.add('active');
+        }
+
+        // --- Tab Navigation Switcher ---
+        function switchTab(screenId) {
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(t => {
+                if(t.id !== 'screenLogin') {
+                    t.classList.remove('active');
+                    t.classList.add('hidden-screen');
+                }
+            });
+
+            const target = document.getElementById(screenId);
+            if(target && screenId !== 'screenLogin') {
+                target.classList.remove('hidden-screen');
+                target.classList.add('active');
+            }
+
+            const navButtons = document.querySelectorAll('.nav-btn');
+            navButtons.forEach(btn => btn.classList.replace('text-brand-600', 'text-slate-400'));
+
+            const navMap = {
+                'screenAnnouncements': 'navAnnouncements',
+                'screenSchedule': 'navSchedule',
+                'screenCourses': 'navCourses',
+                'screenAssignments': 'navAssignments',
+                'screenProfile': 'navProfile'
+            };
+
+            if(navMap[screenId]) {
+                const activeNav = document.getElementById(navMap[screenId]);
+                if(activeNav) activeNav.classList.replace('text-slate-400', 'text-brand-600');
+            }
+
+            if(screenId === 'screenAnnouncements') renderAnnouncements('all');
+            if(screenId === 'screenSchedule') loadSchedule('Mon');
+            if(screenId === 'screenCourses') renderTopics('all');
+            if(screenId === 'screenAssignments') renderAssignments();
+            if(screenId === 'screenProfile') renderTodos();
+
+            checkPendingAssignmentsBadge();
+        }
+
+        function checkPendingAssignmentsBadge() {
+            const badge = document.getElementById('assignmentBadge');
+            if(!badge) return;
+
+            const pendingCount = assignmentsData.filter(a => !a.submitted).length;
+            if(pendingCount > 0) {
+                badge.innerText = pendingCount;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function renderTodos() {
+            const container = document.getElementById('todoList');
+            const countElem = document.getElementById('todoCount');
+            if(!container) return;
+
+            container.innerHTML = '';
+            const completed = userTodos.filter(t => t.done).length;
+            if(countElem) countElem.innerText = `${completed}/${userTodos.length}`;
+
+            if(userTodos.length === 0) {
+                container.innerHTML = `<div class="text-[11px] text-slate-400 py-2 text-center">Չկան պլանավորված գործեր</div>`;
+                return;
+            }
+
+            userTodos.forEach(item => {
+                const todoRow = `
+                    <div class="flex items-center justify-between bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100 text-xs">
+                        <button onclick="toggleTodo(${item.id})" class="flex items-center space-x-2 text-left flex-1">
+                            <i class="fas ${item.done ? 'fa-check-square text-emerald-500' : 'fa-square text-slate-300'} text-sm"></i>
+                            <span class="${item.done ? 'line-through text-slate-400' : 'text-slate-700 font-medium'} text-[11px]">${item.text}</span>
+                        </button>
+                        <button onclick="deleteTodo(${item.id})" class="text-slate-300 hover:text-rose-500 pl-2">
+                            <i class="fas fa-trash-alt text-[10px]"></i>
+                        </button>
+                    </div>
+                `;
+                container.innerHTML += todoRow;
+            });
+        }
+
+        function addTodoTask(e) {
+            e.preventDefault();
+            const input = document.getElementById('todoInput');
+            if(!input || !input.value.trim()) return;
+
+            userTodos.push({
+                id: Date.now(),
+                text: input.value.trim(),
+                done: false
+            });
+
+            input.value = '';
+            renderTodos();
+        }
+
+        function toggleTodo(id) {
+            const item = userTodos.find(t => t.id === id);
+            if(item) {
+                item.done = !item.done;
+                renderTodos();
+            }
+        }
+
+        function deleteTodo(id) {
+            userTodos = userTodos.filter(t => t.id !== id);
+            renderTodos();
+        }
+
+        function openModal(modalId) {
+            if(modalId === 'modalManageCourses') renderAdminCourses();
+            if(modalId === 'modalManageUsers') renderAdminUsers();
+            if(modalId === 'modalAdminSchedule') renderAdminCourses();
+            const modal = document.getElementById(modalId);
+            if(modal) modal.classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if(modal) modal.classList.add('hidden');
+        }
+
+        function renderAnnouncements(categoryFilter = 'all') {
+            const container = document.getElementById('announcementsList');
+            if(!container) return;
+            container.innerHTML = '';
+
+            const filtered = categoryFilter === 'all' 
+                ? announcementsData 
+                : announcementsData.filter(a => a.category === categoryFilter);
+
+            if(filtered.length === 0) {
+                container.innerHTML = `<div class="text-center py-8 text-xs text-slate-400">Հայտարարություններ չկան</div>`;
+                return;
+            }
+
+            filtered.forEach(item => {
+                let badgeStyle = 'bg-blue-50 text-blue-700';
+                if(item.category === 'urgent') badgeStyle = 'bg-rose-50 text-rose-700';
+                if(item.category === 'event') badgeStyle = 'bg-emerald-50 text-emerald-700';
+
+                const card = `
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-md ${badgeStyle}">${item.categoryLabel}</span>
+                            <span class="text-[10px] text-slate-400">${item.date}</span>
+                        </div>
+                        <h3 class="font-bold text-slate-800 text-xs">${item.title}</h3>
+                        <p class="text-slate-500 text-[11px] leading-relaxed">${item.content}</p>
+                        <div class="text-[10px] text-slate-400 pt-1 border-t border-slate-50 flex justify-between">
+                            <span><i class="fas fa-user-edit mr-1"></i>${item.author}</span>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += card;
+            });
+        }
+
+        function filterAnnouncements(category, evt) {
+            const filterBtns = document.querySelectorAll('.ann-filter-btn');
+            filterBtns.forEach(btn => {
+                btn.className = 'ann-filter-btn px-3 py-1 rounded-lg text-xs font-medium bg-white border border-slate-200 text-slate-600 whitespace-nowrap';
+            });
+            if(evt && evt.target) {
+                evt.target.className = 'ann-filter-btn px-3 py-1 rounded-lg text-xs font-medium bg-brand-600 text-white whitespace-nowrap';
+            }
+            renderAnnouncements(category);
+        }
+
+        function saveAnnouncement(e) {
+            e.preventDefault();
+            const title = document.getElementById('annTitle').value.trim();
+            const content = document.getElementById('annContent').value.trim();
+            const category = document.getElementById('annCategory').value;
+
+            const categoryLabels = {
+                'all': 'Ընդհանուր',
+                'urgent': 'Կարևոր',
+                'event': 'Միջոցառում'
+            };
+
+            announcementsData.unshift({
+                id: Date.now(),
+                title,
+                content,
+                category,
+                categoryLabel: categoryLabels[category] || 'Ընդհանուր',
+                date: 'Այսօր',
+                author: currentUser ? currentUser.name : 'Ադմինիստրացիա'
+            });
+
+            closeModal('modalAnnouncement');
+            e.target.reset();
+            renderAnnouncements('all');
+        }
+
+        function loadSchedule(dayKey, evt) {
+            const container = document.getElementById('scheduleList');
+            if(!container) return;
+            container.innerHTML = '';
+
+            const dayBtns = document.querySelectorAll('.day-btn');
+            dayBtns.forEach(btn => {
+                btn.className = 'day-btn px-3.5 py-1.5 rounded-xl text-xs font-medium bg-white border border-slate-200 text-slate-600 whitespace-nowrap';
+            });
+            if(evt && evt.target) {
+                evt.target.className = 'day-btn px-3.5 py-1.5 rounded-xl text-xs font-medium bg-brand-600 text-white whitespace-nowrap shadow-sm';
+            }
+
+            const activeCourse = (currentUser && currentUser.course) ? currentUser.course : 'Կուրս 1 (Շուկայաբանություն)';
+            const userSchedule = courseSchedules[activeCourse] || {};
+            const items = userSchedule[dayKey] || [];
+
+            if(items.length === 0) {
+                container.innerHTML = `<div class="text-center py-8 text-xs text-slate-400">Այս օրը ${activeCourse}-ի համար դասեր չկան</div>`;
+                return;
+            }
+
+            items.forEach(item => {
+                const card = `
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
+                        <div class="space-y-1">
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">${item.type}</span>
+                            <h3 class="font-bold text-slate-800 text-xs">${item.subject}</h3>
+                            <div class="text-[10px] text-slate-400 space-x-2">
+                                <span><i class="fas fa-map-marker-alt mr-1"></i>${item.room}</span>
+                                <span><i class="fas fa-user-tie mr-1"></i>${item.teacher}</span>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs font-semibold text-brand-600 bg-brand-50 px-2.5 py-1 rounded-xl block">${item.time}</span>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += card;
+            });
+        }
+
+        function renderTopics(subjectFilter = 'all') {
+            const container = document.getElementById('topicsList');
+            if(!container) return;
+            container.innerHTML = '';
+
+            const filtered = subjectFilter === 'all' 
+                ? courseTopicsData 
+                : courseTopicsData.filter(t => t.subject === subjectFilter);
+
+            if(filtered.length === 0) {
+                container.innerHTML = `<div class="text-center py-8 text-xs text-slate-400">Այս առարկայից նյութեր չկան</div>`;
+                return;
+            }
+
+            filtered.forEach(item => {
+                let iconClass = 'fa-file-pdf text-rose-500';
+                if(item.type === 'slides') iconClass = 'fa-file-powerpoint text-amber-500';
+                if(item.type === 'video') iconClass = 'fa-file-video text-blue-500';
+                if(item.type === 'code') iconClass = 'fa-file-code text-emerald-500';
+
+                const card = `
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-brand-50 text-brand-700">${item.subject}</span>
+                            <button onclick="toggleTopicCompletion(${item.id})" class="text-[10px] font-semibold flex items-center space-x-1 ${item.completed ? 'text-emerald-600' : 'text-slate-400 hover:text-slate-600'}">
+                                <i class="fas ${item.completed ? 'fa-check-circle text-emerald-500' : 'fa-circle'}"></i>
+                                <span>${item.completed ? 'Ուսումնասիրված' : 'Նոր'}</span>
+                            </button>
+                        </div>
+
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-xs">${item.title}</h3>
+                            <p class="text-slate-500 text-[11px] leading-relaxed mt-1">${item.description}</p>
+                        </div>
+
+                        <div class="bg-slate-50 p-2.5 rounded-xl flex items-center justify-between border border-slate-100">
+                            <div class="flex items-center space-x-2.5 overflow-hidden">
+                                <i class="fas ${iconClass} text-base"></i>
+                                <span class="text-[11px] font-medium text-slate-700 truncate">${item.fileLabel}</span>
+                            </div>
+                            <button onclick="alert('Ֆայլը ներբեռնվում է՝ ${item.fileLabel}')" class="text-brand-600 hover:text-brand-700 text-xs font-semibold px-2 py-1 bg-white rounded-lg shadow-sm border border-slate-100">
+                                <i class="fas fa-download mr-1"></i> Բացել
+                            </button>
+                        </div>
+
+                        <div class="text-[10px] text-slate-400 flex justify-between items-center pt-1">
+                            <span><i class="fas fa-chalkboard-teacher mr-1"></i>${item.teacher}</span>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += card;
+            });
+        }
+
+        function saveTopic(e) {
+            e.preventDefault();
+            const subject = document.getElementById('topicSubject').value.trim();
+            const title = document.getElementById('topicTitle').value.trim();
+            const description = document.getElementById('topicDesc').value.trim();
+            const fileLabel = document.getElementById('topicFile').value.trim();
+
+            courseTopicsData.push({
+                id: Date.now(),
+                subject,
+                title,
+                description,
+                fileLabel,
+                type: 'pdf',
+                teacher: currentUser ? currentUser.name : 'Դասախոս',
+                completed: false
+            });
+
+            closeModal('modalTopic');
+            e.target.reset();
+            renderTopics('all');
+        }
+
+        function toggleTopicCompletion(id) {
+            const topic = courseTopicsData.find(t => t.id === id);
+            if(topic) {
+                topic.completed = !topic.completed;
+                renderTopics();
+            }
+        }
+
+        function renderAssignments() {
+            const container = document.getElementById('assignmentsList');
+            if(!container) return;
+            container.innerHTML = '';
+
+            if(assignmentsData.length === 0) {
+                container.innerHTML = `<div class="text-center py-8 text-xs text-slate-400">Առաջադրանքներ չկան</div>`;
+                return;
+            }
+
+            assignmentsData.forEach(item => {
+                let deadlineBadgeText = '';
+                let badgeStyle = 'bg-amber-50 text-amber-700 border-amber-100';
+
+                if (item.submitted) {
+                    deadlineBadgeText = 'Հանձնված է';
+                    badgeStyle = 'bg-emerald-50 text-emerald-700 border-emerald-100';
+                } else if (item.deadline) {
+                    const now = new Date();
+                    now.setHours(0, 0, 0, 0);
+                    const dDate = new Date(item.deadline);
+                    dDate.setHours(0, 0, 0, 0);
+                    const diffTime = dDate - now;
+                    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+                    if (diffDays < 0) {
+                        deadlineBadgeText = 'Ժամկետն անցել է';
+                        badgeStyle = 'bg-rose-50 text-rose-700 border-rose-100';
+                    } else if (diffDays === 0) {
+                        deadlineBadgeText = 'Այսօր';
+                        badgeStyle = 'bg-amber-100 text-amber-800 border-amber-200';
+                    } else if (diffDays === 1) {
+                        deadlineBadgeText = 'Վաղը';
+                        badgeStyle = 'bg-amber-50 text-amber-700 border-amber-100';
+                    } else {
+                        deadlineBadgeText = `Մնաց ${diffDays} օր`;
+                        badgeStyle = 'bg-blue-50 text-blue-700 border-blue-100';
+                    }
+                }
+
+                let formattedDateStr = 'Նշված չէ';
+                if(item.deadline) {
+                    const d = new Date(item.deadline + 'T00:00:00');
+                    formattedDateStr = d.toLocaleDateString('hy-AM', { month: 'short', day: 'numeric', year: 'numeric' });
+                }
+
+                const card = `
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700">${item.subject}</span>
+                            <span class="text-[10px] font-semibold ${item.submitted ? 'text-emerald-600' : 'text-amber-600'}">
+                                ${item.submitted ? '<i class="fas fa-check-circle mr-1"></i>Ուղարկված' : '<i class="fas fa-clock mr-1"></i>Սպասվում է'}
+                            </span>
+                        </div>
+                        <h3 class="font-bold text-slate-800 text-xs leading-snug">${item.title}</h3>
+                        
+                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex items-center justify-between text-xs">
+                            <div class="flex items-center space-x-2 text-slate-600">
+                                <i class="fas fa-calendar-alt text-brand-600 text-xs"></i>
+                                <div class="text-[11px]">
+                                    <span class="text-slate-400 block text-[9px] font-medium uppercase">Վերջնաժամկետ</span>
+                                    <span class="font-bold text-slate-800">${formattedDateStr}</span>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold px-2 py-1 rounded-lg border ${badgeStyle}">
+                                ${deadlineBadgeText}
+                            </span>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += card;
+            });
+        }
+
+        function saveAssignment(e) {
+            e.preventDefault();
+            const subject = document.getElementById('assignSubject').value.trim();
+            const title = document.getElementById('assignTitle').value.trim();
+            const deadline = document.getElementById('assignDeadline').value;
+
+            assignmentsData.push({
+                id: Date.now(),
+                subject: subject,
+                title: title,
+                deadline: deadline,
+                submitted: false
+            });
+
+            closeModal('modalAssignment');
+            e.target.reset();
+            renderAssignments();
+            checkPendingAssignmentsBadge();
+        }
+
+        function renderAdminCourses() {
+            const list = document.getElementById('adminCoursesList');
+            const select = document.getElementById('schedCourseSelect');
+            if(!list) return;
+
+            list.innerHTML = '';
+            if(select) select.innerHTML = '';
+
+            coursesData.forEach(c => {
+                list.innerHTML += `
+                    <div class="py-2 flex items-center justify-between">
+                        <span class="font-bold text-slate-800">${c}</span>
+                        <span class="text-[10px] bg-brand-50 text-brand-700 font-semibold px-2 py-0.5 rounded">Ակտիվ</span>
+                    </div>
+                `;
+                if(select) {
+                    select.innerHTML += `<option value="${c}">${c}</option>`;
+                }
+            });
+        }
+
+        function addNewCourse(e) {
+            e.preventDefault();
+            const input = document.getElementById('newCourseName');
+            if(input && input.value.trim()) {
+                const cName = input.value.trim();
+                if(!coursesData.includes(cName)) {
+                    coursesData.push(cName);
+                    renderAdminCourses();
+                    renderAdminUsers();
+                }
+                input.value = '';
+            }
+        }
+
+        function renderAdminUsers() {
+            const list = document.getElementById('adminUsersList');
+            const courseSelect = document.getElementById('newStudentCourse');
+            if(!list) return;
+
+            if(courseSelect) {
+                courseSelect.innerHTML = coursesData.map(c => `<option value="${c}">${c}</option>`).join('');
+            }
+
+            list.innerHTML = '';
+            Object.values(USERS).forEach(user => {
+                if(user.role === 'student') {
+                    let courseOptions = coursesData.map(c => `
+                        <option value="${c}" ${user.course === c ? 'selected' : ''}>${c}</option>
+                    `).join('');
+
+                    list.innerHTML += `
+                        <div class="py-2 flex items-center justify-between border-b border-slate-50">
+                            <div>
+                                <div class="font-bold text-slate-800 text-[11px]">${user.name}</div>
+                                <div class="text-[9px] text-slate-400">@${user.username}</div>
+                            </div>
+                            <select onchange="updateUserCourse('${user.username}', this.value)" class="text-[10px] p-1 border border-slate-200 rounded-lg bg-slate-50 font-semibold text-brand-700">
+                                ${courseOptions}
+                            </select>
+                        </div>
+                    `;
+                }
+            });
+        }
+
+        function addNewStudent(e) {
+            e.preventDefault();
+            const name = document.getElementById('newStudentName').value.trim();
+            const username = document.getElementById('newStudentUser').value.trim();
+            const password = document.getElementById('newStudentPass').value.trim();
+            const course = document.getElementById('newStudentCourse').value;
+
+            if(USERS[username]) {
+                alert('Այս մուտքանունով օգտատեր արդեն գոյություն ունի։');
+                return;
+            }
+
+            USERS[username] = {
+                username: username,
+                password: password,
+                role: 'student',
+                roleLabel: 'Ուսանող',
+                name: name,
+                course: course,
+                subtitle: `${course} | Շուկայաբանություն`,
+                avatar: ''
+            };
+            
+            document.getElementById('newStudentName').value = '';
+            document.getElementById('newStudentUser').value = '';
+            document.getElementById('newStudentPass').value = '';
+
+            renderAdminUsers();
+        }
+
+        function updateUserCourse(username, newCourse) {
+            if(USERS[username]) {
+                USERS[username].course = newCourse;
+                USERS[username].subtitle = `${newCourse} | Շուկայաբանություն`;
+            }
+        }
+
+        function saveScheduleItem(e) {
+            e.preventDefault();
+            const course = document.getElementById('schedCourseSelect').value;
+            const day = document.getElementById('schedDaySelect').value;
+            const subject = document.getElementById('schedSubject').value;
+            const time = document.getElementById('schedTime').value;
+            const room = document.getElementById('schedRoom').value;
+            const teacher = document.getElementById('schedTeacher').value;
+
+            if(!courseSchedules[course]) {
+                courseSchedules[course] = {};
+            }
+            if(!courseSchedules[course][day]) {
+                courseSchedules[course][day] = [];
+            }
+
+            courseSchedules[course][day].push({
+                time, subject, room, teacher, type: 'Դաս'
+            });
+
+            closeModal('modalAdminSchedule');
+            e.target.reset();
+
+            loadSchedule(day);
+        }
+    </script>
+</body>
+</html>
